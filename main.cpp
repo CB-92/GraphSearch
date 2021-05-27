@@ -1,39 +1,69 @@
-#include<iostream>
-#include <list>
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
 #include <fstream>
+#include <algorithm>
  
 using namespace std;
 
+/*struct Node{
+    Node(int id, std::set<int> a) : node_id(id), adj(a) {}
+    int node_id;
+    std::set<int> adj;
+};*/
+
+class Node{
+    public:
+        Node(int id, std::set<int> a) : node_id(id), adj(a) {}
+        int node_id;
+        std::set<int> adj;
+};
+
+struct find_by_id{
+            find_by_id(const int & id) : id(id) {}
+            bool operator()(const Node & node) {
+                return node.node_id == id;
+            }
+            private:
+            int id;
+        };
+
 class Graph
 {
-    int V;    // No. of vertices
- 
-    // Pointer to an array containing adjacency
-    // lists
-    list<int> *adj;  
-public:
-    Graph(int V);  // Constructor
- 
-    // function to add an edge to graph
-    void addEdge(int v, int w);
- 
+    public:
+        Graph(vector<Node> v) : nodes(v) {}
     // prints BFS traversal from a given source s
-    void sequentialBFS(int s); 
+        void addEdge(int source_id, int dest_id);
+        void sequentialBFS(int s);
+        vector<Node> nodes; 
 };
  
-Graph::Graph(int V)
-{
-    this->V = V;
-    adj = new list<int>[V];
-}
  
-void Graph::addEdge(int v, int w)
-{
-    adj[v].push_back(w); // Add w to v’s list.
+void Graph::addEdge(int source_id, int dest_id){
+    vector<Node> g = this->nodes;
+    vector<Node>::iterator it = std::find_if(g.begin(), g.end(), find_by_id(source_id));
+
+    if (it != g.end()){
+        /*if (g.at(it - g.begin()).node_id == source_id){
+            cout << "OK!\n";
+        } else {
+            cout << "NOT OK!!!\n";
+        }*/
+         
+        //cout << "Nodo già presente! Devo inserire " << dest_id << " nella adj list di " << source_id << ".\n";
+        g.at(it - g.begin()).adj.insert(source_id);
+
+    } else{
+        //cout << "Inserted node " << source_id << " with " << dest_id << " in his adj list.\n";
+        Node n(source_id, {dest_id});
+        this->nodes.push_back(n);
+    }
+   
 }
  
 void Graph::sequentialBFS(int s)
-{
+{/*
     // Mark all the vertices as not visited
     bool *visited = new bool[V];
     for(int i = 0; i < V; i++)
@@ -68,21 +98,19 @@ void Graph::sequentialBFS(int s)
                 queue.push_back(*i);
             }
         }
-    }
+    }*/
 }
 
 int main(int argc, char *argv[])
 {
-    if(argc != 3) {
+    if(argc != 2) {
         std::cerr << "Usage: " << argv[0] 
-                << " number_of_vertex inputfile.txt" << std::endl;
+                << " inputfile.txt" << std::endl;
         return 1;
     }
 
-    int nVertexes = atoi(argv[1]);
-
     // input file
-    string filename = argv[2];
+    string filename = argv[1];
     ifstream inFile;
     inFile.open(filename);
 
@@ -94,7 +122,7 @@ int main(int argc, char *argv[])
 
 
     // Create a graph given in the above diagram
-    Graph g(nVertexes);
+    Graph g({});
 
     int a, b;
     while (inFile >> a >> b){
@@ -103,7 +131,7 @@ int main(int argc, char *argv[])
  
     cout << "Following is Breadth First Traversal "
          << "(starting from vertex 2) \n";
-    g.sequentialBFS(2);
+    //g.sequentialBFS(2);
     cout << "\n";
  
     inFile.close();
