@@ -13,12 +13,9 @@ using namespace std;
 
 class Node{
     public:
-        Node(int id, int v, set<int> a) : node_id(id), value(v), adj(a) {
-            visited = false;
-        }
+        Node(int id, int v, set<int> a) : node_id(id), value(v), adj(a){}
         int node_id;
         int value;
-        bool visited;
         set<int> adj;
 };
 
@@ -39,7 +36,6 @@ class Graph
         void addEdge(int source_id, int dest_id);
         int contains(int node_id);
         int sequentialBFS(int x, int s);
-        //int countOccurrences(int x, int s);
         vector<Node> nodes; 
 };
 
@@ -72,6 +68,7 @@ void Graph::addEdge(int source_id, int dest_id){
 }
  
 int Graph::sequentialBFS(int x, int s){
+    int visited[this->nodes.size()] = {0};
     int res = 0;
  
     // Create a queue for BFS
@@ -83,7 +80,7 @@ int Graph::sequentialBFS(int x, int s){
         cerr << "Node id " << s << " not found!\n";
         return -1;
     }
-    this->nodes.at(pos).visited = true;
+    visited[s] = 1;
     q.push(this->nodes.at(pos));
 
     while (!q.empty()){
@@ -106,8 +103,8 @@ int Graph::sequentialBFS(int x, int s){
                 return -1;
             }
          
-            if (!this->nodes.at(p).visited){
-                this->nodes.at(p).visited = true;
+            if (!visited[id]){
+                visited[id] = 1;
                 q.push(this->nodes.at(p));
             }            
         }
@@ -115,58 +112,6 @@ int Graph::sequentialBFS(int x, int s){
     return res;
 }
 
-/*int Graph::countOccurrences(int x, int s){
-    int res =0;
-    int dim = this->nodes.size();
-    int occ[dim] = {0}; //index of occ array maps nodes ids
-    // Create a queue for BFS
-    queue<Node> q;
- 
-    // Mark the current node as visited and enqueue it
-    int pos = this->contains(s);
-    if(pos == -1){
-        cerr << "Node id " << s << " not found!\n";
-        return -1;
-    }
-
-    q.push(this->nodes.at(pos));
-
-    while (!q.empty()){
-        // Dequeue a vertex from queue and print it
-        Node n = q.front();
-        if (n.value == x)
-        {
-            occ[n.node_id]++;
-        }
-        
-        q.pop();
-
-        // Get all adjacent vertices of the dequeued
-        // vertex s. If a adjacent has not been visited,
-        // then mark it visited and enqueue it
-        for(int id : n.adj){
-            int p = this->contains(id);
-
-            if (p == -1 ){
-                cerr << "Node id " << id << " not found!\n";
-                return -1;
-            }
-         
-            q.push(this->nodes.at(p));           
-        }
-    }
-
-    for (size_t i = 0; i < dim; i++)
-    {
-        if (occ[i]>0)
-        {
-            res++;
-        }
-        
-    }
-    
-    return res;
-}*/
 
 int main(int argc, char *argv[])
 {
