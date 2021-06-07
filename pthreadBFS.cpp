@@ -9,11 +9,18 @@
 #include <stdlib.h>     /* srand, rand */
 #include <time.h> 
 #include <atomic>
-#include <pthread.h>
+#include <thread>
+#include <chrono>
 #include <mutex>
 #include <condition_variable>
+#include <list>
  
 using namespace std;
+using namespace std::literals::chrono_literals;
+
+// Mutex and condition variable
+mutex m;
+condition_variable cv;
 
 class Node{
     public:
@@ -30,17 +37,7 @@ struct find_by_id{
     }
     private:
         int id;
-};
-
-struct params_struct{
-    params_struct(int* v, int i, int p, int av, Node n, queue<Node>* q) : visited(v), id(i), pos(p), already_visited(av), node(n), qu(q) {}
-    int* visited;
-    int id;
-    int pos;
-    int already_visited;
-    Node node;
-    queue<Node>* qu;
-};
+}; 
 
 
 class Graph
@@ -83,22 +80,35 @@ void Graph::addEdge(int source_id, int dest_id){
 }
 
 
-
-void* processNode(void* params){
-    struct params_struct *data;
-    data = (struct params_struct *) params;
-    if (!data->already_visited){
-        data->visited[data->id] = 1;
-        data->qu->push(data->node);
+void processNode(bool * visited, int index, bool already_visited, Node n, queue<Node>* q){
+    if (!already_visited){
+        visited[index] = true;
+        q->push(n);
     }
-    pthread_exit(NULL);
+}
+
+void maremmaBestia(int id, int av, Node node, queue<Node>* q){
+    cout << "Il nodo: " << id << " è stato visitato? " << av << " \n";
+    if (!av){
+        q->push(node);
+    }
+    
 }
 
  
 int Graph::BFS(int x, int s){
     int res = 0;
+    const size_t len = static_cast<const size_t>(this->nodes.size());
+    
+    //int visited[len] = {0};
 
-    int visited[this->nodes.size()] = {0};
+    vector<bool> visited;
+    for (size_t i = 0; i < len; i++){
+        visited.push_back(false);
+    }
+    
+
+    //array<int, len> visited = {0};
  
     // Create a queue for BFS
     queue<Node> q;
@@ -109,13 +119,13 @@ int Graph::BFS(int x, int s){
         cerr << "Node id " << s << " not found!\n";
         return -1;
     }
-    visited[s] = 1;
+    visited[s] = true;
     q.push(this->nodes.at(pos));
 
     while (!q.empty()){
         // Dequeue a vertex from queue and print it
         Node n = q.front();
-        //cout << n.node_id << " ";
+
         cout << "Node id: " << n.node_id << ", Node value: " << n.value << ";\t";
         if (n.value == x)
             res++;
@@ -125,10 +135,14 @@ int Graph::BFS(int x, int s){
         // vertex s. If a adjacent has not been visited,
         // then mark it visited and enqueue it
 
-        cout << "Starting the threads for "<< n.node_id <<" adjacency list.\n";
+        static const int adj_size = n.adj.size();
 
-        pthread_t tids[n.adj.size()];
-        int i = 0;
+        cout << "Starting " << adj_size <<" threads for "<< n.node_id <<" adjacency list.\n";
+
+        //thread threads[adj_size];
+        vector<thread> vecOfThreads;
+
+        //int i = 0;
         for(int id : n.adj){
 
             int p = this->contains(id);
@@ -138,28 +152,30 @@ int Graph::BFS(int x, int s){
                 return -1;
             }
 
-            params_struct params(visited, id, p, visited[id], this->nodes.at(p), &q);
+            cout << "Spawning thread for node: " << id << "\n";
+            Node n = this->nodes.at(p);
 
-            pthread_create(&tids[i], NULL, processNode, &params);
-            i++;    
+            //threads[i] = std::thread(processNode, visited, id, visited[id], this->nodes.at(p), ref(q));
+            //thread x(processNode, &visited, id, visited[id], this->nodes.at(p), ref(q));
+            vecOfThreads.push_back(std::thread(processNode, ref(visited), id, visited[id], this->nodes.at(p), ref(q)));
+            //i++;
+
+            cout << "Node " << id << " processed!\n";
         }
 
-        void* status;
+        /*for (size_t k = 0; k<adj_size ; k++){
+            cout << "Wait for thread " << k << " to finish!\n"; 
+            threads[k].join();
+        }*/
 
-        for (size_t i = 0; i < n.adj.size() ; i++){
-            pthread_join(tids[i], &status);
+        for(thread &th : vecOfThreads){
+            if (th.joinable()){
+                th.join();
+            }
         }
         
     }
     return res;
-}
-
-
-
-void* print_msg(void* arg){
-    string msg = *static_cast<string*>(arg);
-    cout << "Thread msg is: " << msg << "\n";
-    pthread_exit(NULL);
 }
 
 int main(int argc, char *argv[])
