@@ -24,61 +24,43 @@ condition_variable cv;
 
 class Node{
     public:
-        Node(int id, int v, set<int> a) : node_id(id), value(v), adj(a) {}
+        Node(int id, int v, set<int> a) : node_id(id), value(v), adj(a){}
         int node_id;
         int value;
         set<int> adj;
 };
 
-struct find_by_id{
-    find_by_id(const int & id) : id(id) {}
-    bool operator()(const Node & node) {
-    return node.node_id == id;
-    }
-    private:
-        int id;
-}; 
-
-
 class Graph
 {
     public:
-        Graph(vector<Node> v) : nodes(v) {}
+        public:
+        Graph(vector<Node> v, int nv) : nodes(v), number_of_vertices(nv) {}
     // prints BFS traversal from a given source s
         void addEdge(int source_id, int dest_id);
-        int contains(int node_id);
+        //int contains(int node_id);
         int BFS(int x, int s);
-        vector<Node> nodes; 
+        int number_of_vertices;
+        vector<Node> nodes;
 };
 
-int Graph::contains(int node_id){
-    // Returns the position of node_id in this->nodes if present, -1 otherwise.
-    vector<Node>::iterator it = std::find_if(this->nodes.begin(), this->nodes.end(), find_by_id(node_id));
-    if (it != this->nodes.end()){
-        // Found element with node id equal to node_id
-        return (it - this->nodes.begin());
+void Graph::addEdge(int source, int dest){
+    if (this->nodes.at(source).node_id == -1){
+        // Source node to be initialized
+        this->nodes.at(source).node_id = source;
+        this->nodes.at(source).value = rand() % static_cast<int>(3);
+        this->nodes.at(source).adj.insert(dest);
+    } else {
+        // Add dest to source's adj list
+        this->nodes.at(source).adj.insert(dest);
     }
 
-    return -1;    
+    if (this->nodes.at(dest).node_id == -1){
+        // Dest node to be initialized
+        this->nodes.at(dest).node_id = dest;
+        this->nodes.at(dest).value = rand() % static_cast<int>(3);
+    }
+    
 }
- 
-void Graph::addEdge(int source_id, int dest_id){
-
-    int pos = this->contains(source_id);
-
-    if (pos > -1){
-        this->nodes.at(pos).adj.insert(dest_id);
-    } else{
-        Node n(source_id, (rand() % static_cast<int>(3)), {dest_id});
-        this->nodes.push_back(n);
-    }
-
-    if(this->contains(dest_id) == -1){
-        this->nodes.push_back(Node(dest_id, (rand() % static_cast<int>(3)), {}));
-    }
-   
-}
-
 
 void processNode(bool * visited, int index, bool already_visited, Node n, queue<Node>* q){
     if (!already_visited){
@@ -87,40 +69,17 @@ void processNode(bool * visited, int index, bool already_visited, Node n, queue<
     }
 }
 
-void maremmaBestia(int id, int av, Node node, queue<Node>* q){
-    cout << "Il nodo: " << id << " è stato visitato? " << av << " \n";
-    if (!av){
-        q->push(node);
-    }
-    
-}
-
  
 int Graph::BFS(int x, int s){
+    int len = this->number_of_vertices;
+    int visited[len] = {0};
     int res = 0;
-    const size_t len = static_cast<const size_t>(this->nodes.size());
-    
-    //int visited[len] = {0};
-
-    vector<bool> visited;
-    for (size_t i = 0; i < len; i++){
-        visited.push_back(false);
-    }
-    
-
-    //array<int, len> visited = {0};
  
     // Create a queue for BFS
     queue<Node> q;
  
-    // Mark the current node as visited and enqueue it
-    int pos = this->contains(s);
-    if(pos == -1){
-        cerr << "Node id " << s << " not found!\n";
-        return -1;
-    }
-    visited[s] = true;
-    q.push(this->nodes.at(pos));
+    visited[s] = 1;
+    q.push(this->nodes.at(s));
 
     while (!q.empty()){
         // Dequeue a vertex from queue and print it
@@ -145,19 +104,12 @@ int Graph::BFS(int x, int s){
         //int i = 0;
         for(int id : n.adj){
 
-            int p = this->contains(id);
-
-            if (p == -1 ){
-                cerr << "Node id " << id << " not found!\n";
-                return -1;
-            }
-
             cout << "Spawning thread for node: " << id << "\n";
-            Node n = this->nodes.at(p);
+            Node node = this->nodes.at(s);
 
             //threads[i] = std::thread(processNode, visited, id, visited[id], this->nodes.at(p), ref(q));
             //thread x(processNode, &visited, id, visited[id], this->nodes.at(p), ref(q));
-            vecOfThreads.push_back(std::thread(processNode, ref(visited), id, visited[id], this->nodes.at(p), ref(q)));
+            vecOfThreads.push_back(std::thread(processNode, ref(visited), id, visited[id], node, ref(q)));
             //i++;
 
             cout << "Node " << id << " processed!\n";
@@ -180,11 +132,14 @@ int Graph::BFS(int x, int s){
 
 int main(int argc, char *argv[])
 {
-    if(argc != 2) {
+    if(argc != 3) {
         std::cerr << "Usage: " << argv[0] 
-                << " inputfile.txt" << std::endl;
+                << " inputfile.txt number_of_vertices\n"<< std::endl;
         return 1;
     }
+
+    //no. vertices
+    int nv = atoi(argv[2]);
 
     // input file
     string filename = argv[1];
@@ -199,7 +154,13 @@ int main(int argc, char *argv[])
 
 
     // Create a graph given in the above diagram
-    Graph g({});
+    Node init(-1, -1, {});
+    vector<Node> nodes;
+    for (size_t i = 0; i < nv; i++){
+        nodes.push_back(init);
+    }
+    
+    Graph g(nodes, nv);
 
     int a, b;
     while (inFile >> a >> b){
@@ -211,14 +172,8 @@ int main(int argc, char *argv[])
     int occ = g.BFS(1, 0);
     cout << "\n";
 
-    int pos = g.contains(0);
-    if (pos == -1){
-        cout << "Node id 0 not found!!!";
-    }
-
     cout << "#occorrenze del VALORE 1 a partire dal nodo con ID=0: " << occ << "\n";
  
     inFile.close();
-
     return 0;
 }

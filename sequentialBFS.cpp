@@ -1,6 +1,7 @@
 #include <iostream>
 #include <set>
 #include <vector>
+#include <list>
 #include <string>
 #include <queue>
 #include <fstream>
@@ -19,69 +20,50 @@ class Node{
         set<int> adj;
 };
 
-struct find_by_id{
-            find_by_id(const int & id) : id(id) {}
-            bool operator()(const Node & node) {
-                return node.node_id == id;
-            }
-            private:
-            int id;
-        };
-
 class Graph
 {
     public:
-        Graph(vector<Node> v) : nodes(v) {}
+        public:
+        Graph(vector<Node> v, int nv) : nodes(v), number_of_vertices(nv) {}
     // prints BFS traversal from a given source s
         void addEdge(int source_id, int dest_id);
-        int contains(int node_id);
-        int sequentialBFS(int x, int s);
-        vector<Node> nodes; 
+        //int contains(int node_id);
+        int BFS(int x, int s);
+        int number_of_vertices;
+        vector<Node> nodes;
 };
 
-int Graph::contains(int node_id){
-    // Returns the position of node_id in this->nodes if present, -1 otherwise.
-    vector<Node>::iterator it = std::find_if(this->nodes.begin(), this->nodes.end(), find_by_id(node_id));
-    if (it != this->nodes.end()){
-        // Found element with node id equal to node_id
-        return (it - this->nodes.begin());
+void Graph::addEdge(int source, int dest){
+    if (this->nodes.at(source).node_id == -1){
+        // Source node to be initialized
+        this->nodes.at(source).node_id = source;
+        this->nodes.at(source).value = rand() % static_cast<int>(3);
+        this->nodes.at(source).adj.insert(dest);
+    } else {
+        // Add dest to source's adj list
+        this->nodes.at(source).adj.insert(dest);
     }
 
-    return -1;    
+    if (this->nodes.at(dest).node_id == -1){
+        // Dest node to be initialized
+        this->nodes.at(dest).node_id = dest;
+        this->nodes.at(dest).value = rand() % static_cast<int>(3);
+    }
+    
 }
+
+
  
-void Graph::addEdge(int source_id, int dest_id){
-
-    int pos = this->contains(source_id);
-
-    if (pos > -1){
-        this->nodes.at(pos).adj.insert(dest_id);
-    } else{
-        Node n(source_id, (rand() % static_cast<int>(3)), {dest_id});
-        this->nodes.push_back(n);
-    }
-
-    if(this->contains(dest_id) == -1){
-        this->nodes.push_back(Node(dest_id, (rand() % static_cast<int>(3)), {}));
-    }
-   
-}
- 
-int Graph::sequentialBFS(int x, int s){
-    int visited[this->nodes.size()] = {0};
+int Graph::BFS(int x, int s){
+    int len = this->number_of_vertices;
+    int visited[len] = {0};
     int res = 0;
  
     // Create a queue for BFS
     queue<Node> q;
  
-    // Mark the current node as visited and enqueue it
-    int pos = this->contains(s);
-    if(pos == -1){
-        cerr << "Node id " << s << " not found!\n";
-        return -1;
-    }
     visited[s] = 1;
-    q.push(this->nodes.at(pos));
+    q.push(this->nodes.at(s));
 
     while (!q.empty()){
         // Dequeue a vertex from queue and print it
@@ -96,16 +78,10 @@ int Graph::sequentialBFS(int x, int s){
         // vertex s. If a adjacent has not been visited,
         // then mark it visited and enqueue it
         for(int id : n.adj){
-            int p = this->contains(id);
-
-            if (p == -1 ){
-                cerr << "Node id " << id << " not found!\n";
-                return -1;
-            }
          
             if (!visited[id]){
                 visited[id] = 1;
-                q.push(this->nodes.at(p));
+                q.push(this->nodes.at(id));
             }            
         }
     }
@@ -115,11 +91,14 @@ int Graph::sequentialBFS(int x, int s){
 
 int main(int argc, char *argv[])
 {
-    if(argc != 2) {
+    if(argc != 3) {
         std::cerr << "Usage: " << argv[0] 
-                << " inputfile.txt" << std::endl;
+                << " inputfile.txt number_of_vertices\n"<< std::endl;
         return 1;
     }
+
+    //no. vertices
+    int nv = atoi(argv[2]);
 
     // input file
     string filename = argv[1];
@@ -134,7 +113,13 @@ int main(int argc, char *argv[])
 
 
     // Create a graph given in the above diagram
-    Graph g({});
+    Node init(-1, -1, {});
+    vector<Node> nodes;
+    for (size_t i = 0; i < nv; i++){
+        nodes.push_back(init);
+    }
+    
+    Graph g(nodes, nv);
 
     int a, b;
     while (inFile >> a >> b){
@@ -143,13 +128,8 @@ int main(int argc, char *argv[])
  
     cout << "Following is Breadth First Traversal "
          << "(starting from vertex 0) \n";
-    int occ = g.sequentialBFS(1, 0);
+    int occ = g.BFS(1, 0);
     cout << "\n";
-
-    int pos = g.contains(0);
-    if (pos == -1){
-        cout << "Node id 0 not found!!!";
-    }
 
     cout << "#occorrenze del VALORE 1 a partire dal nodo con ID=0: " << occ << "\n";
  
