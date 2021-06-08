@@ -7,10 +7,10 @@
 
 using namespace std;
 
-#define MIN_PER_RANK 2 /* Nodes/Rank: How 'fat' the DAG should be.  */
-#define MAX_PER_RANK 20
-#define MIN_RANKS 10    /* Ranks: How 'tall' the DAG should be.  */
-#define MAX_RANKS 20
+#define MIN_PER_RANK 1 /* Nodes/Rank: How 'fat' the DAG should be.  */
+#define MAX_PER_RANK 10
+#define MIN_RANKS 5    /* Ranks: How 'tall' the DAG should be.  */
+#define MAX_RANKS 10
 #define PERCENT 30     /* Chance of having an Edge.  */
 
 int main(int argc, char *argv[]){

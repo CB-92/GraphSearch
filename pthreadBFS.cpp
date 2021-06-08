@@ -2,7 +2,6 @@
 #include <set>
 #include <vector>
 #include <string>
-#include <queue>
 #include <fstream>
 #include <algorithm>
 #include <stdio.h>      
@@ -11,16 +10,12 @@
 #include <atomic>
 #include <thread>
 #include <chrono>
-#include <mutex>
-#include <condition_variable>
 #include <list>
+#include "SynchQueue.hpp"
+#include "SynchSet.hpp"
  
 using namespace std;
 using namespace std::literals::chrono_literals;
-
-// Mutex and condition variable
-mutex m;
-condition_variable cv;
 
 class Node{
     public:
@@ -62,33 +57,39 @@ void Graph::addEdge(int source, int dest){
     
 }
 
-void processNode(bool * visited, int index, bool already_visited, Node n, queue<Node>* q){
-    if (!already_visited){
-        visited[index] = true;
+void processNode(SynchSet<int>* visited, int index, Node n, SynchQueue<Node>* q){
+    if (!visited->contains(index)){
+        visited->add(index);
         q->push(n);
     }
+}
+
+void initVector(vector<Node>& nodes, int index){
+    nodes.push_back(Node(-1, -1, {}));
+    cout<<"Added "<< index <<"!\n";
 }
 
  
 int Graph::BFS(int x, int s){
     int len = this->number_of_vertices;
-    int visited[len] = {0};
+
+    SynchSet<int> visited; //stores the ids of visited nodes 
     int res = 0;
  
     // Create a queue for BFS
-    queue<Node> q;
+    SynchQueue<Node> q;
  
-    visited[s] = 1;
+    visited.add(s);
     q.push(this->nodes.at(s));
+
 
     while (!q.empty()){
         // Dequeue a vertex from queue and print it
-        Node n = q.front();
+        Node n = q.get();
 
         cout << "Node id: " << n.node_id << ", Node value: " << n.value << ";\t";
         if (n.value == x)
             res++;
-        q.pop();
 
         // Get all adjacent vertices of the dequeued
         // vertex s. If a adjacent has not been visited,
@@ -98,33 +99,29 @@ int Graph::BFS(int x, int s){
 
         cout << "Starting " << adj_size <<" threads for "<< n.node_id <<" adjacency list.\n";
 
-        //thread threads[adj_size];
         vector<thread> vecOfThreads;
 
-        //int i = 0;
         for(int id : n.adj){
 
             cout << "Spawning thread for node: " << id << "\n";
-            Node node = this->nodes.at(s);
 
-            //threads[i] = std::thread(processNode, visited, id, visited[id], this->nodes.at(p), ref(q));
-            //thread x(processNode, &visited, id, visited[id], this->nodes.at(p), ref(q));
-            vecOfThreads.push_back(std::thread(processNode, ref(visited), id, visited[id], node, ref(q)));
-            //i++;
+            Node node = this->nodes.at(s);
+            vecOfThreads.push_back(std::thread(processNode, &visited, id, node, &q));
 
             cout << "Node " << id << " processed!\n";
         }
-
-        /*for (size_t k = 0; k<adj_size ; k++){
-            cout << "Wait for thread " << k << " to finish!\n"; 
-            threads[k].join();
-        }*/
 
         for(thread &th : vecOfThreads){
             if (th.joinable()){
                 th.join();
             }
         }
+
+        cout << "Queue:\n";
+        for (size_t i = 0; i < q.size(); i++){
+            cout << q.at(i).node_id << " ";
+        }
+        cout <<"\n";
         
     }
     return res;
@@ -156,6 +153,7 @@ int main(int argc, char *argv[])
     // Create a graph given in the above diagram
     Node init(-1, -1, {});
     vector<Node> nodes;
+    //vector<thread> threads;
     for (size_t i = 0; i < nv; i++){
         nodes.push_back(init);
     }
