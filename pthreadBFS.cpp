@@ -18,55 +18,87 @@ using namespace std;
 using namespace std::literals::chrono_literals;
 
 class Node{
-    public:
-        Node(int id, int v, set<int> a) : node_id(id), value(v), adj(a){}
+    private:
         int node_id;
         int value;
         set<int> adj;
+
+    public:
+        Node(){
+            node_id = -1;
+            value = -1;
+            set<int> adj = {};
+        }
+
+        int get_id(){
+            return node_id;
+        }
+
+        int get_value(){
+            return value;
+        }
+
+        set<int> get_adj_list(){
+            return adj;
+        }
+
+        void set_id(int id){
+            node_id = id;
+        }
+
+        void set_value(int v){
+            value = v;
+        }
+
+        void add_adj_node(int id){
+            adj.insert(id);
+        }        
 };
 
 class Graph
 {
-    public:
-        public:
-        Graph(vector<Node> v, int nv) : nodes(v), number_of_vertices(nv) {}
-    // prints BFS traversal from a given source s
-        void addEdge(int source_id, int dest_id);
-        //int contains(int node_id);
-        int BFS(int x, int s);
+
+    private:
         int number_of_vertices;
-        vector<Node> nodes;
+        Node* nodes;
+    public:
+
+        Graph(int num_nodes, Node* n){
+            number_of_vertices = num_nodes;
+            nodes = n;
+        }
+
+        void addEdge(int source_id, int dest_id){
+            if(nodes[source_id].get_id()==-1){
+                nodes[source_id].set_id(source_id);
+                nodes[source_id].set_value(rand() % static_cast<int>(3));
+                nodes[source_id].add_adj_node(dest_id);
+            } else {
+                nodes[source_id].add_adj_node(dest_id);
+            }
+
+            if(nodes[dest_id].get_id() == -1){
+                nodes[dest_id].set_id(dest_id);
+                nodes[dest_id].set_value(rand() % static_cast<int>(3));
+            }
+        }
+
+        Node get_node_at(int index){
+            return nodes[index];
+        }
+
+        int size(){
+            return number_of_vertices;
+        }
+
+        int BFS(int x, int s);
 };
 
-void Graph::addEdge(int source, int dest){
-    if (this->nodes.at(source).node_id == -1){
-        // Source node to be initialized
-        this->nodes.at(source).node_id = source;
-        this->nodes.at(source).value = rand() % static_cast<int>(3);
-        this->nodes.at(source).adj.insert(dest);
-    } else {
-        // Add dest to source's adj list
-        this->nodes.at(source).adj.insert(dest);
+void processNode(SynchSet<int>& visited, int index, Node n, SynchQueue<Node>& q){
+    if (!visited.contains(index)){
+        visited.add(index);
+        q.push(n);
     }
-
-    if (this->nodes.at(dest).node_id == -1){
-        // Dest node to be initialized
-        this->nodes.at(dest).node_id = dest;
-        this->nodes.at(dest).value = rand() % static_cast<int>(3);
-    }
-    
-}
-
-void processNode(SynchSet<int>* visited, int index, Node n, SynchQueue<Node>* q){
-    if (!visited->contains(index)){
-        visited->add(index);
-        q->push(n);
-    }
-}
-
-void initVector(vector<Node>& nodes, int index){
-    nodes.push_back(Node(-1, -1, {}));
-    cout<<"Added "<< index <<"!\n";
 }
 
  
@@ -80,33 +112,34 @@ int Graph::BFS(int x, int s){
     SynchQueue<Node> q;
  
     visited.add(s);
-    q.push(this->nodes.at(s));
+    q.push(this->get_node_at(s));
 
 
     while (!q.empty()){
         // Dequeue a vertex from queue and print it
         Node n = q.get();
 
-        cout << "Node id: " << n.node_id << ", Node value: " << n.value << ";\t";
-        if (n.value == x)
+        cout << "Node id: " << n.get_id() << ", Node value: " << n.get_value() << ";\t";
+        if (n.get_value() == x)
             res++;
 
         // Get all adjacent vertices of the dequeued
         // vertex s. If a adjacent has not been visited,
         // then mark it visited and enqueue it
 
-        static const int adj_size = n.adj.size();
+        static const int adj_size = n.get_adj_list().size();
 
-        cout << "Starting " << adj_size <<" threads for "<< n.node_id <<" adjacency list.\n";
+        cout << "Starting " << adj_size <<" threads for "<< n.get_id() <<" adjacency list.\n";
 
         vector<thread> vecOfThreads;
 
-        for(int id : n.adj){
+        for(int id : n.get_adj_list()){
 
             cout << "Spawning thread for node: " << id << "\n";
 
-            Node node = this->nodes.at(s);
-            vecOfThreads.push_back(std::thread(processNode, &visited, id, node, &q));
+            Node node = this->get_node_at(id);
+
+            vecOfThreads.push_back(std::thread(processNode, ref(visited), id, node, ref(q)));
 
             cout << "Node " << id << " processed!\n";
         }
@@ -119,7 +152,7 @@ int Graph::BFS(int x, int s){
 
         cout << "Queue:\n";
         for (size_t i = 0; i < q.size(); i++){
-            cout << q.at(i).node_id << " ";
+            cout << q.at(i).get_id() << " ";
         }
         cout <<"\n";
         
@@ -151,14 +184,10 @@ int main(int argc, char *argv[])
 
 
     // Create a graph given in the above diagram
-    Node init(-1, -1, {});
-    vector<Node> nodes;
     //vector<thread> threads;
-    for (size_t i = 0; i < nv; i++){
-        nodes.push_back(init);
-    }
+    Node nodes[nv] = {Node()};
     
-    Graph g(nodes, nv);
+    Graph g(nv, nodes);
 
     int a, b;
     while (inFile >> a >> b){
