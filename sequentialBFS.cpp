@@ -9,9 +9,13 @@
 #include <stdio.h>      
 #include <stdlib.h>     /* srand, rand */
 #include <time.h> 
+#include <chrono>
 #include "Node.hpp"
  
 using namespace std;
+using namespace std::literals::chrono_literals;
+using usecs = std::chrono::microseconds;
+using msecs = std::chrono::milliseconds;
 
 class Graph
 {
@@ -67,7 +71,7 @@ int Graph::BFS(int x, int s){
         // Dequeue a vertex from queue and print it
         Node n = q.front();
         //cout << n.node_id << " ";
-        cout << "Node id: " << n.get_id() << ", Node value: " << n.get_value() << ";\t";
+        //cout << "Node id: " << n.get_id() << ", Node value: " << n.get_value() << ";\t";
         if (n.get_value() == x)
             res++;
         q.pop();
@@ -89,14 +93,17 @@ int Graph::BFS(int x, int s){
 
 int main(int argc, char *argv[])
 {
-    if(argc != 3) {
+     if(argc != 5) {
         std::cerr << "Usage: " << argv[0] 
-                << " inputfile.txt number_of_vertices\n"<< std::endl;
+                << " inputfile.txt number_of_vertices value source_node\n"<< std::endl;
         return 1;
     }
 
     //no. vertices
     int nv = atoi(argv[2]);
+
+    int value = atoi(argv[3]);
+    int node_id = atoi(argv[4]);
 
     // input file
     string filename = argv[1];
@@ -108,7 +115,9 @@ int main(int argc, char *argv[])
     cerr << "Unable to open file " << filename << "\n";
     exit(1);   // call system to stop
     }
-
+    
+    std::chrono::system_clock::time_point start;
+    std::chrono::system_clock::time_point stop;
 
     // Create a graph given in the above diagram
     Node nodes[nv] = {Node()};
@@ -116,16 +125,27 @@ int main(int argc, char *argv[])
     Graph g(nv, nodes);
 
     int a, b;
+    start = std::chrono::system_clock::now();
     while (inFile >> a >> b){
         g.addEdge(a, b);
     }
+    stop = std::chrono::system_clock::now();
+
+    std::chrono::duration<double> elapsed = stop - start;
+    auto musec = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+    cout << "Graph init in " << musec << " microseconds\n";
  
-    cout << "Following is Breadth First Traversal "
-         << "(starting from vertex 0) \n";
-    int occ = g.BFS(1, 0);
+    start = std::chrono::system_clock::now();
+    int occ = g.BFS(value, node_id);
+    stop = std::chrono::system_clock::now();
     cout << "\n";
 
-    cout << "#occorrenze del VALORE 1 a partire dal nodo con ID=0: " << occ << "\n";
+    cout << "Number of occurrencies of VALUE "<< value <<" starting from node with ID="<< node_id <<": " << occ << "\n";
+    
+    elapsed = stop - start;
+    musec = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+
+    cout << "Sequential BFS computed in " << musec << " microseconds\n";
  
     inFile.close();
     return 0;

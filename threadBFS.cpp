@@ -15,6 +15,7 @@
 #include "SynchSet.hpp"
 #include "Node.hpp"
 #include "MyQueue.hpp"
+#include "Pool.hpp"
  
 using namespace std;
 using namespace std::literals::chrono_literals;
@@ -70,6 +71,7 @@ void processNode(SynchSet<int>& visited, int index, Node n, SynchQueue<Node>& q)
 }
 
 void check_value(SynchSet<int> &visited, int value, atomic_int &occ, Node n, MyQueue<int> & q){
+    cout << "Cheching node " << n.get_id() << " \n";
 
     if(!visited.contains(n.get_id())){
     
@@ -87,6 +89,7 @@ void check_value(SynchSet<int> &visited, int value, atomic_int &occ, Node n, MyQ
 
 
 int Graph::anotherBFS(int value, int source_id){
+    Pool thread_pool;
     SynchSet<int> visited; // Stores the ids of already visited nodes
     atomic_int res = 0;
     MyQueue<int> next_level;    
@@ -97,21 +100,23 @@ int Graph::anotherBFS(int value, int source_id){
     
     while (!next_level.empty()){
         Node n = this->get_node_at(next_level.get());
-        //cout << "Node id: " << n.get_id() << ", Node value: " << n.get_value() << ";\n";
 
-        vecOfThreads.push_back(thread(check_value, ref(visited), value, ref(res), n, ref(next_level)));
+        //thread_pool.add_job(check_value(ref(visited), value, ref(res), n, ref(next_level)));
 
-        /*for (int node : n.get_adj_list()){
-            vecOfThreads.push_back(thread(check_value, ref(visited), value, ref(res), n, ref(next_level)));
-        }*/
-        
-        for(thread &th : vecOfThreads){
+        thread_pool.add_job(std::bind(ref(check_value),  ref(visited), value, ref(res), n, ref(next_level)));
+
+        //vecOfThreads.push_back(thread(check_value, ref(visited), value, ref(res), n, ref(next_level)));
+
+        /*for(thread &th : vecOfThreads){
             if (th.joinable()){
                 th.join();
             }
-        }
-        
+        }*/
+        //thread_pool.start();
+        //thread_pool.shutdown();       
     }
+    thread_pool.start();
+    thread_pool.shutdown();
 
     return res;        
 }
@@ -177,17 +182,14 @@ int Graph::BFS(int x, int s){
 
 int main(int argc, char *argv[])
 {
-    if(argc != 5) {
+    if(argc != 3) {
         std::cerr << "Usage: " << argv[0] 
-                << " inputfile.txt number_of_vertices value source_node\n"<< std::endl;
+                << " inputfile.txt number_of_vertices\n"<< std::endl;
         return 1;
     }
 
     //no. vertices
     int nv = atoi(argv[2]);
-
-    int value = atoi(argv[3]);
-    int node_id = atoi(argv[4]);
 
     // input file
     string filename = argv[1];
@@ -211,15 +213,9 @@ int main(int argc, char *argv[])
     Graph g(nv, nodes);
 
     int a, b;
-    start = std::chrono::system_clock::now();
     while (inFile >> a >> b){
         g.addEdge(a, b);
     }
-    stop = std::chrono::system_clock::now();
-
-    std::chrono::duration<double> elapsed = stop - start;
-    auto musec = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-    cout << "Graph init in " << musec << " microseconds\n";
  
     /*cout << "Following is Breadth First Traversal "
          << "(starting from vertex 0) \n";
@@ -230,21 +226,21 @@ int main(int argc, char *argv[])
     cout << "\n";
 
     cout << "#occorrenze del VALORE 1 a partire dal nodo con ID=0: " << occ << "\n";
-    elapsed = stop - start;
-    musec = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-    cout << "Par1 computed in " << musec << " microseconds\n";
+    std::chrono::duration<double> elapsed = stop - start;
+    auto musec = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+    cout << "Par1 computed in " << musec << " microseconds\n";*/
 
 
-    cout << "Try another BFS\n";*/
+    cout << "Try another BFS\n";
     start = std::chrono::system_clock::now();
-    int occ = g.anotherBFS(value,node_id);
+    int occ = g.anotherBFS(1,0);
     stop = std::chrono::system_clock::now();
 
-    cout << "Number of occurrencies of VALUE "<< value <<" starting from node with ID="<< node_id <<": " << occ << "\n";
+    cout << "#occorrenze del VALORE 1 a partire dal nodo con ID=0 usando l'altro metodo: " << occ << "\n";
 
-    elapsed = stop - start;
-    musec = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-    cout << "Thread BFS computed in " << musec << " microseconds\n";
+    std::chrono::duration<double> elapsed = stop - start;
+    auto musec = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+    cout << "Thread pool version computed in " << musec << " microseconds\n";
  
     inFile.close();
     return 0;

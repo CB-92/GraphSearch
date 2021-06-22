@@ -6,10 +6,10 @@
 using namespace std;
 
 template<typename T>
-class SynchQueue{
+class MyQueue{
     private:
         const unsigned int len = 10000;
-        deque<T> q;
+        set<T> q;
         mutex mq;
         condition_variable is_not_empty, is_not_full;
 
@@ -23,16 +23,7 @@ class SynchQueue{
         }
 
         bool contains(T el){
-            bool found = false;
-            int i = 0;
-            while (i<q.size() && !found){
-                if(q[i] == el){
-                    found = true;
-                } else {
-                    i++;
-                }
-            }
-            return found;
+            return q.find(el) != q.end();
         }
 
         void push(T el){
@@ -42,7 +33,7 @@ class SynchQueue{
                 cout << "Waiting because the queue is full\n";
                 is_not_full.wait(mlock);
             }
-            q.push_back(el);
+            q.insert(el);
             mlock.unlock();
             
             is_not_empty.notify_all();
@@ -55,17 +46,19 @@ class SynchQueue{
                 is_not_empty.wait(mlock);
             }
 
-            T el = q.front();
-            q.pop_front();
+            //T el = q.front();
+            //q.pop_front();
+
+            auto it = q.begin();
+
+
+            T el = *it;
+            q.erase(q.begin());
 
             mlock.unlock();
             is_not_full.notify_all();
 
             return el;            
-        }
-
-        T at(int index){
-            return q[index];
         }
 
 };

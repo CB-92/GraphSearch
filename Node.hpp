@@ -39,4 +39,12 @@ class Node{
         void add_adj_node(int id){
             adj.insert(id);
         }        
+
+        bool operator<(const Node &node) const{
+            return node_id < node.node_id;
+        }
+
+        bool operator==(const Node &node) const {
+            return node_id == node.node_id;
+        }
 };
