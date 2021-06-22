@@ -13,13 +13,11 @@
 #include <list>
 #include "SynchQueue.hpp"
 #include "SynchSet.hpp"
-#include "Node.hpp"
+#include "../Node.hpp"
 #include "MyQueue.hpp"
  
 using namespace std;
-using namespace std::literals::chrono_literals;
-using usecs = std::chrono::microseconds;
-using msecs = std::chrono::milliseconds;
+using namespace std::chrono;
 
 class Graph
 {
@@ -62,13 +60,6 @@ class Graph
         int anotherBFS(int x, int s);
 };
 
-void processNode(SynchSet<int>& visited, int index, Node n, SynchQueue<Node>& q){
-    if (!visited.contains(index)){
-        visited.add(index);
-        q.push(n);
-    }
-}
-
 void check_value(SynchSet<int> &visited, int value, atomic_int &occ, Node n, MyQueue<int> & q){
 
     if(!visited.contains(n.get_id())){
@@ -86,7 +77,7 @@ void check_value(SynchSet<int> &visited, int value, atomic_int &occ, Node n, MyQ
 }
 
 
-int Graph::anotherBFS(int value, int source_id){
+int Graph::BFS(int value, int source_id){
     SynchSet<int> visited; // Stores the ids of already visited nodes
     atomic_int res = 0;
     MyQueue<int> next_level;    
@@ -100,10 +91,6 @@ int Graph::anotherBFS(int value, int source_id){
         //cout << "Node id: " << n.get_id() << ", Node value: " << n.get_value() << ";\n";
 
         vecOfThreads.push_back(thread(check_value, ref(visited), value, ref(res), n, ref(next_level)));
-
-        /*for (int node : n.get_adj_list()){
-            vecOfThreads.push_back(thread(check_value, ref(visited), value, ref(res), n, ref(next_level)));
-        }*/
         
         for(thread &th : vecOfThreads){
             if (th.joinable()){
@@ -114,65 +101,6 @@ int Graph::anotherBFS(int value, int source_id){
     }
 
     return res;        
-}
- 
-int Graph::BFS(int x, int s){
-    int len = this->number_of_vertices;
-
-    SynchSet<int> visited; //stores the ids of visited nodes 
-    int res = 0;
- 
-    // Create a queue for BFS
-    SynchQueue<Node> q;
- 
-    visited.add(s);
-    q.push(this->get_node_at(s));
-
-
-    while (!q.empty()){
-        // Dequeue a vertex from queue and print it
-        Node n = q.get();
-
-        //cout << "Node id: " << n.get_id() << ", Node value: " << n.get_value() << ";\t";
-        if (n.get_value() == x)
-            res++;
-
-        // Get all adjacent vertices of the dequeued
-        // vertex s. If a adjacent has not been visited,
-        // then mark it visited and enqueue it
-
-        static const int adj_size = n.get_adj_list().size();
-
-        //cout << "Starting " << adj_size <<" threads for "<< n.get_id() <<" adjacency list.\n";
-
-        vector<thread> vecOfThreads;
-
-        for(int id : n.get_adj_list()){
-            if(!visited.contains(id)){
-                //cout << "Spawning thread for node: " << id << "\n";
-
-            Node node = this->get_node_at(id);
-
-            vecOfThreads.push_back(std::thread(processNode, ref(visited), id, node, ref(q)));
-
-            //cout << "Node " << id << " processed!\n";
-            }
-        }
-
-        for(thread &th : vecOfThreads){
-            if (th.joinable()){
-                th.join();
-            }
-        }
-
-        /*cout << "Queue:\n";
-        for (size_t i = 0; i < q.size(); i++){
-            cout << q.at(i).get_id() << " ";
-        }
-        cout <<"\n";*/
-        
-    }
-    return res;
 }
 
 int main(int argc, char *argv[])
@@ -194,8 +122,8 @@ int main(int argc, char *argv[])
     ifstream inFile;
     inFile.open(filename);
 
-    std::chrono::system_clock::time_point start;
-    std::chrono::system_clock::time_point stop;
+    high_resolution_clock::time_point start, stop;
+    duration<double, std::milli> elapsed;
 
     // check that the file has been opened
     if (!inFile) {
@@ -211,40 +139,23 @@ int main(int argc, char *argv[])
     Graph g(nv, nodes);
 
     int a, b;
-    start = std::chrono::system_clock::now();
+    start = high_resolution_clock::now();
     while (inFile >> a >> b){
         g.addEdge(a, b);
     }
-    stop = std::chrono::system_clock::now();
+    stop = high_resolution_clock::now();
 
-    std::chrono::duration<double> elapsed = stop - start;
-    auto musec = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-    cout << "Graph init in " << musec << " microseconds\n";
- 
-    /*cout << "Following is Breadth First Traversal "
-         << "(starting from vertex 0) \n";
-         
-    start = std::chrono::system_clock::now();
-    int occ = g.BFS(1, 0);
-    stop = std::chrono::system_clock::now();
-    cout << "\n";
-
-    cout << "#occorrenze del VALORE 1 a partire dal nodo con ID=0: " << occ << "\n";
     elapsed = stop - start;
-    musec = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-    cout << "Par1 computed in " << musec << " microseconds\n";
-
-
-    cout << "Try another BFS\n";*/
-    start = std::chrono::system_clock::now();
-    int occ = g.anotherBFS(value,node_id);
-    stop = std::chrono::system_clock::now();
+    cout << "Graph init in " << elapsed.count() << " milliseconds\n";
+ 
+    start = high_resolution_clock::now();
+    int occ = g.BFS(value,node_id);
+    stop = high_resolution_clock::now();
 
     cout << "Number of occurrencies of VALUE "<< value <<" starting from node with ID="<< node_id <<": " << occ << "\n";
 
     elapsed = stop - start;
-    musec = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-    cout << "Thread BFS computed in " << musec << " microseconds\n";
+    cout << "Thread BFS computed in " << elapsed.count() << " milliseconds\n";
  
     inFile.close();
     return 0;

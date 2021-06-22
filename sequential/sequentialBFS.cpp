@@ -10,12 +10,10 @@
 #include <stdlib.h>     /* srand, rand */
 #include <time.h> 
 #include <chrono>
-#include "Node.hpp"
+#include "../Node.hpp"
  
 using namespace std;
-using namespace std::literals::chrono_literals;
-using usecs = std::chrono::microseconds;
-using msecs = std::chrono::milliseconds;
+using namespace std::chrono;
 
 class Graph
 {
@@ -115,9 +113,12 @@ int main(int argc, char *argv[])
     cerr << "Unable to open file " << filename << "\n";
     exit(1);   // call system to stop
     }
+
+    high_resolution_clock::time_point start, stop;
+    duration<double, std::milli> elapsed;
     
-    std::chrono::system_clock::time_point start;
-    std::chrono::system_clock::time_point stop;
+    /*std::chrono::system_clock::time_point start;
+    std::chrono::system_clock::time_point stop;*/
 
     // Create a graph given in the above diagram
     Node nodes[nv] = {Node()};
@@ -125,27 +126,26 @@ int main(int argc, char *argv[])
     Graph g(nv, nodes);
 
     int a, b;
-    start = std::chrono::system_clock::now();
+    start = high_resolution_clock::now();
     while (inFile >> a >> b){
         g.addEdge(a, b);
     }
-    stop = std::chrono::system_clock::now();
+    stop = high_resolution_clock::now();
 
-    std::chrono::duration<double> elapsed = stop - start;
-    auto musec = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-    cout << "Graph init in " << musec << " microseconds\n";
+
+    elapsed = stop - start;
+    cout << "Graph init in " << elapsed.count() << " milliseconds\n";
  
-    start = std::chrono::system_clock::now();
+    start = high_resolution_clock::now();;
     int occ = g.BFS(value, node_id);
-    stop = std::chrono::system_clock::now();
+    stop = high_resolution_clock::now();
     cout << "\n";
 
     cout << "Number of occurrencies of VALUE "<< value <<" starting from node with ID="<< node_id <<": " << occ << "\n";
     
     elapsed = stop - start;
-    musec = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
 
-    cout << "Sequential BFS computed in " << musec << " microseconds\n";
+    cout << "Sequential BFS computed in " << elapsed.count() << " milliseconds\n";
  
     inFile.close();
     return 0;
