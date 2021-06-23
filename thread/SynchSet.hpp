@@ -2,6 +2,9 @@
 #include <condition_variable>
 #include <set>
 
+#ifndef SYNCHSET_HPP
+#define SYNCHSET_HPP
+
 using namespace std;
 
 template<typename T>
@@ -53,3 +56,5 @@ public:
             is_updatable.notify_all();        
     }
 };
+
+#endif

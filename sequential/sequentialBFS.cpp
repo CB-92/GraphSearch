@@ -3,6 +3,7 @@
 #include <vector>
 #include <list>
 #include <string>
+#include <sstream>
 #include <queue>
 #include <fstream>
 #include <algorithm>
@@ -31,7 +32,6 @@ class Graph
         void addEdge(int source_id, int dest_id){
             if(nodes[source_id].get_id()==-1){
                 nodes[source_id].set_id(source_id);
-                nodes[source_id].set_value(rand() % static_cast<int>(3));
                 nodes[source_id].add_adj_node(dest_id);
             } else {
                 nodes[source_id].add_adj_node(dest_id);
@@ -39,8 +39,23 @@ class Graph
 
             if(nodes[dest_id].get_id() == -1){
                 nodes[dest_id].set_id(dest_id);
-                nodes[dest_id].set_value(rand() % static_cast<int>(3));
             }
+        }
+
+        void insertValue(int node_id, int value){
+            nodes[node_id].set_value(value);
+        }
+
+        void print_graph(){
+            for (int i = 0; i < number_of_vertices; i++)
+            {
+                cout<<"Node id: "<< nodes[i].get_id() << ", value: "<<nodes[i].get_value() << ", adj list:";
+                for(auto &n : nodes[i].get_adj_list()){
+                    cout << " " << n;
+                }
+                cout<<"\n";
+            }
+            
         }
 
         Node get_node_at(int index){
@@ -127,9 +142,25 @@ int main(int argc, char *argv[])
 
     int a, b;
     start = high_resolution_clock::now();
-    while (inFile >> a >> b){
-        g.addEdge(a, b);
+    bool hashtag_found = false;
+    string line;
+    
+    while(getline(inFile, line)){
+        //cout<<"Checking line: "<< line<<"\n";
+        if(line == "#"){
+            hashtag_found = true;
+        } else {
+            istringstream iss(line);
+            iss >> a >> b;
+            //cout << "A: " << a << ", B: " << b << "\n";
+            if(!hashtag_found){
+                g.addEdge(a, b);
+            } else {
+                g.insertValue(a, b);
+            }
+        }
     }
+
     stop = high_resolution_clock::now();
 
 

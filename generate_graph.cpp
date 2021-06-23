@@ -15,13 +15,14 @@ using namespace std;
 
 int main(int argc, char *argv[]){
 
-    if(argc != 3) {
+    if(argc != 4) {
         std::cerr << "Usage: " << argv[0] 
-                << " number_of_nodes output_file.txt" << std::endl;
+                << " number_of_nodes output_file.txt max_value" << std::endl;
         return 1;
     }
 
     int node_num = atoi(argv[1]);
+    int max_value = atoi(argv[3]);
     string filename = argv[2];
 
     ofstream myfile (filename);
@@ -47,6 +48,13 @@ int main(int argc, char *argv[]){
 
             nodes += new_nodes; /* Accumulate into old node set.  */
         }
+
+        myfile << "#\n";
+
+        for (size_t i = 0; i < node_num; i++){
+            myfile << i << " " << rand() % static_cast<int>(max_value) <<"\n";
+        }
+         
         
         cout << "Number of nodes: " << nodes << "\n";
         myfile.close();

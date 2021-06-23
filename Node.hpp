@@ -1,6 +1,9 @@
 #include <set>
 #include <algorithm>
 
+#ifndef NODE_HPP
+#define NODE_HPP
+
 using namespace std;
 
 class Node{
@@ -48,3 +51,5 @@ class Node{
             return node_id == node.node_id;
         }
 };
+
+#endif

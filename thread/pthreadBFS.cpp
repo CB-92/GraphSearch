@@ -11,6 +11,8 @@
 #include <thread>
 #include <chrono>
 #include <list>
+#include <string>
+#include <sstream>
 #include "SynchQueue.hpp"
 #include "SynchSet.hpp"
 #include "../Node.hpp"
@@ -35,7 +37,6 @@ class Graph
         void addEdge(int source_id, int dest_id){
             if(nodes[source_id].get_id()==-1){
                 nodes[source_id].set_id(source_id);
-                nodes[source_id].set_value(rand() % static_cast<int>(3));
                 nodes[source_id].add_adj_node(dest_id);
             } else {
                 nodes[source_id].add_adj_node(dest_id);
@@ -43,8 +44,11 @@ class Graph
 
             if(nodes[dest_id].get_id() == -1){
                 nodes[dest_id].set_id(dest_id);
-                nodes[dest_id].set_value(rand() % static_cast<int>(3));
             }
+        }
+
+        void insertValue(int node_id, int value){
+            nodes[node_id].set_value(value);
         }
 
         Node get_node_at(int index){
@@ -103,7 +107,7 @@ int Graph::BFS(int value, int source_id){
     return res;        
 }
 
-int main(int argc, char *argv[])
+/*int main(int argc, char *argv[])
 {
     if(argc != 5) {
         std::cerr << "Usage: " << argv[0] 
@@ -140,8 +144,23 @@ int main(int argc, char *argv[])
 
     int a, b;
     start = high_resolution_clock::now();
-    while (inFile >> a >> b){
-        g.addEdge(a, b);
+    bool hashtag_found = false;
+    string line;
+    
+    while(getline(inFile, line)){
+        //cout<<"Checking line: "<< line<<"\n";
+        if(line == "#"){
+            hashtag_found = true;
+        } else {
+            istringstream iss(line);
+            iss >> a >> b;
+            //cout << "A: " << a << ", B: " << b << "\n";
+            if(!hashtag_found){
+                g.addEdge(a, b);
+            } else {
+                g.insertValue(a, b);
+            }
+        }
     }
     stop = high_resolution_clock::now();
 
@@ -159,4 +178,4 @@ int main(int argc, char *argv[])
  
     inFile.close();
     return 0;
-}
+}*/
