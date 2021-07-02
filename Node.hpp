@@ -1,5 +1,7 @@
 #include <set>
 #include <algorithm>
+#include <mutex>
+//TODO: vedere se incrementare l'efficienza con una cv
 
 #ifndef NODE_HPP
 #define NODE_HPP
@@ -11,12 +13,17 @@ class Node{
         int node_id;
         int value;
         set<int> adj;
+        mutex mux;
 
     public:
         Node(){
             node_id = -1;
             value = -1;
             set<int> adj = {};
+        }
+
+        auto acquire(){
+            return unique_lock<mutex>(mux);
         }
 
         int get_id(){

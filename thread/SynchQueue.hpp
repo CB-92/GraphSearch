@@ -24,7 +24,7 @@ class SynchQueue{
 
         bool contains(T el){
             bool found = false;
-            int i = 0;
+            auto i = 0;
             while (i<q.size() && !found){
                 if(q[i] == el){
                     found = true;
@@ -35,17 +35,24 @@ class SynchQueue{
             return found;
         }
 
-        void push(T el){
+        bool push(T el){
+            bool inserted = false;
             unique_lock<mutex> mlock(mq);
 
             while (q.size() == len){
                 cout << "Waiting because the queue is full\n";
                 is_not_full.wait(mlock);
             }
-            q.push_back(el);
+            if(!this->contains(el)){
+                q.push_back(el);
+                inserted = true;
+            }
+            
             mlock.unlock();
             
             is_not_empty.notify_all();
+
+            return inserted;
         }
 
         T get(){

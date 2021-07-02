@@ -8,6 +8,7 @@
 #include <future>
 #include <functional>
 #include <stdexcept>
+#include "../Node.hpp"
 
 #ifndef POOL_HPP
 #define POOL_HPP
@@ -52,7 +53,6 @@ class Pool {
          Pool(function<int (int)> task, int thread_num);
          ~Pool();
          void add_item(int item);
-         future<int> start();
 };
 
 //The constructor spawns thread_num threads
@@ -84,14 +84,6 @@ inline void Pool::add_item(int item){
         items.emplace(item);
     }
     is_not_ready.notify_one();    
-}
-
-inline future<int> Pool::start(){
-
-    prom = promise<int>();
-    is_not_ready.notify_all();
-
-    return prom.get_future();
 }
 
 #endif

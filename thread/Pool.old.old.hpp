@@ -159,10 +159,11 @@ class Pool{
 
         ~Pool(){
             cout << "Ending the pool\n";
+            curr->cv.notify_all();
             for(thread &th : vec_of_threads){
                 cout << "Thread "<<th.get_id() << " is joinable? " << th.joinable() <<"\n";
                 if(th.joinable()){
-                    curr->cv.notify_all();
+                    //curr->cv.notify_all();
                     th.join();
                 } 
             }

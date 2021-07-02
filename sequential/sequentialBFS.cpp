@@ -12,62 +12,10 @@
 #include <time.h> 
 #include <chrono>
 #include "../Node.hpp"
+#include "../Graph.hpp"
  
 using namespace std;
 using namespace std::chrono;
-
-class Graph
-{
-
-    private:
-        int number_of_vertices;
-        Node* nodes;
-    public:
-
-        Graph(int num_nodes, Node* n){
-            number_of_vertices = num_nodes;
-            nodes = n;
-        }
-
-        void addEdge(int source_id, int dest_id){
-            if(nodes[source_id].get_id()==-1){
-                nodes[source_id].set_id(source_id);
-                nodes[source_id].add_adj_node(dest_id);
-            } else {
-                nodes[source_id].add_adj_node(dest_id);
-            }
-
-            if(nodes[dest_id].get_id() == -1){
-                nodes[dest_id].set_id(dest_id);
-            }
-        }
-
-        void insertValue(int node_id, int value){
-            nodes[node_id].set_value(value);
-        }
-
-        void print_graph(){
-            for (int i = 0; i < number_of_vertices; i++)
-            {
-                cout<<"Node id: "<< nodes[i].get_id() << ", value: "<<nodes[i].get_value() << ", adj list:";
-                for(auto &n : nodes[i].get_adj_list()){
-                    cout << " " << n;
-                }
-                cout<<"\n";
-            }
-            
-        }
-
-        Node get_node_at(int index){
-            return nodes[index];
-        }
-
-        int size(){
-            return number_of_vertices;
-        }
-
-        int BFS(int x, int s);
-};
  
 int Graph::BFS(int x, int s){
     int len = this->number_of_vertices;
@@ -75,24 +23,24 @@ int Graph::BFS(int x, int s){
     int res = 0;
  
     // Create a queue for BFS
-    queue<Node> q;
+    queue<Node*> q;
  
     visited[s] = 1;
     q.push(this->get_node_at(s));
 
     while (!q.empty()){
         // Dequeue a vertex from queue and print it
-        Node n = q.front();
+        Node* n = q.front();
         //cout << n.node_id << " ";
         //cout << "Node id: " << n.get_id() << ", Node value: " << n.get_value() << ";\t";
-        if (n.get_value() == x)
+        if (n->get_value() == x)
             res++;
         q.pop();
 
         // Get all adjacent vertices of the dequeued
         // vertex s. If a adjacent has not been visited,
         // then mark it visited and enqueue it
-        for(int id : n.get_adj_list()){
+        for(int id : n->get_adj_list()){
          
             if (!visited[id]){
                 visited[id] = 1;

@@ -20,17 +20,28 @@ class Pool{
 
 
         Pool(WorkerFunction wf, int thread_num){
-            /*close_pool.value = false;
+            close_pool.value = false;
             ready.value = false;
             work_fun = wf;
-            active_threads.value = 0;*/
+            active_threads.value = 0;
 
             for(int i=0; i<thread_num; i++){
                 threads.push_back(thread(thread_fun, i));
             }
         }
 
-        ~Pool(){}
+        ~Pool(){
+            auto lock = close_pool.acquire();
+            close_pool.value = true;
+            lock.unlock();
+
+            is_not_empty.notify_all();
+
+            for(thread &th : threads){
+                if(th.joinable())
+                    th.join();
+            }
+        }
 
 
         void add_item(IN_T item){
