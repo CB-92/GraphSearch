@@ -1,25 +1,33 @@
 #include <set>
+#include <vector>
 #include <algorithm>
 #include <mutex>
-//TODO: vedere se incrementare l'efficienza con una cv
+#include <condition_variable>
+#include <utility>
 
 #ifndef NODE_HPP
 #define NODE_HPP
 
 using namespace std;
 
+class Node;
+
+using NodePtr   = shared_ptr<Node>;
+
 class Node{
     private:
         int node_id;
         int value;
-        set<int> adj;
+        bool _visited;
+        vector<NodePtr> adj;
         mutex mux;
+        condition_variable cv;
 
     public:
-        Node(){
-            node_id = -1;
-            value = -1;
-            set<int> adj = {};
+        using visit_result = pair<int, vector<NodePtr>>;
+
+        Node(int id, int val): node_id(id), value(val), _visited(false){
+            set<Node*> adj = {};
         }
 
         auto acquire(){
@@ -34,29 +42,47 @@ class Node{
             return value;
         }
 
-        set<int> get_adj_list(){
+        vector<NodePtr>& get_adj_list(){
             return adj;
         }
 
-        void set_id(int id){
-            node_id = id;
+        void add_adj_node(NodePtr n){
+            adj.push_back(n);
         }
 
-        void set_value(int v){
-            value = v;
+        bool visited(){
+            unique_lock<mutex> lock(mux);
+            return this->_visited;
         }
 
-        void add_adj_node(int id){
-            adj.insert(id);
-        }        
 
-        bool operator<(const Node &node) const{
-            return node_id < node.node_id;
-        }
+        visit_result check_and_visit(int value){
+            visit_result res;
+            int check = 0;
 
-        bool operator==(const Node &node) const {
-            return node_id == node.node_id;
+            unique_lock<mutex> lock(mux);
+            
+            if(!this->_visited){
+                // check value
+                if(this->value == value){
+                    check=1;
+                }
+
+                // fill neighbours
+                for(auto n : adj){
+                    if(!n->visited()){
+                        res.second.push_back(n);
+                    }
+                }
+            }
+
+            res.first = check;
+
+            return res;
         }
+        
 };
+
+
 
 #endif

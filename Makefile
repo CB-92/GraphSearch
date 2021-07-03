@@ -8,18 +8,18 @@ OPTFLAGS	=  -O3 -finline-functions
 OTHERFLAGS	=  -L/usr/X11R6/lib -lm
 
 TARGETS = \
-	BFS \
-	IBFS 
+	sBFS \
+	sIBFS 
 
-.PHONY: BFS IBFS clean cleanall
+.PHONY: clean cleanall
 .SUFFIXES: .cpp 
 
 
-BFS : sequentialBFS.cpp
-	$(CXX) $< $(CXXFLAGS) $(OPTFLAGS) $(OTHERFLAGS) $(LDFLAGS) -o BFS
+sBFS : sequential/sequentialBFS.cpp
+	$(CXX) $< $(CXXFLAGS) $(OPTFLAGS) $(OTHERFLAGS) $(LDFLAGS) -o sBFS
 
-IBFS : sequentialBFS.cpp
-	$(ICC) $< $(CXXFLAGS) $(OPTFLAGS) $(OTHERFLAGS) $(LDFLAGS) -o IBFS
+sIBFS : sequential/sequentialBFS.cpp
+	$(ICC) $< $(CXXFLAGS) $(OPTFLAGS) $(OTHERFLAGS) $(LDFLAGS) -o sIBFS
 
 clean		: 
 	rm -f $(TARGETS) 

@@ -17,7 +17,7 @@
 using namespace std;
 using namespace std::chrono;
  
-int Graph::BFS(int x, int s){
+/*int Graph::BFS(int x, int s, int th_num){
     int len = this->number_of_vertices;
     int visited[len] = {0};
     int res = 0;
@@ -49,7 +49,7 @@ int Graph::BFS(int x, int s){
         }
     }
     return res;
-}
+}*/
 
 
 int main(int argc, char *argv[])
@@ -83,10 +83,9 @@ int main(int argc, char *argv[])
     /*std::chrono::system_clock::time_point start;
     std::chrono::system_clock::time_point stop;*/
 
-    // Create a graph given in the above diagram
-    Node nodes[nv] = {Node()};
+    // Create the graph
     
-    Graph g(nv, nodes);
+    Graph g(nv);
 
     int a, b;
     start = high_resolution_clock::now();
@@ -102,9 +101,11 @@ int main(int argc, char *argv[])
             iss >> a >> b;
             //cout << "A: " << a << ", B: " << b << "\n";
             if(!hashtag_found){
-                g.addEdge(a, b);
+                // Adding node
+                g.addNode(a, b);
             } else {
-                g.insertValue(a, b);
+                // Adding edge
+                g.addEdge(a, b);
             }
         }
     }
@@ -114,8 +115,10 @@ int main(int argc, char *argv[])
 
     elapsed = stop - start;
     cout << "Graph init in " << elapsed.count() << " milliseconds\n";
+
+    g.print();
  
-    start = high_resolution_clock::now();;
+    /*start = high_resolution_clock::now();;
     int occ = g.BFS(value, node_id);
     stop = high_resolution_clock::now();
     cout << "\n";
@@ -124,7 +127,7 @@ int main(int argc, char *argv[])
     
     elapsed = stop - start;
 
-    cout << "Sequential BFS computed in " << elapsed.count() << " milliseconds\n";
+    cout << "Sequential BFS computed in " << elapsed.count() << " milliseconds\n";*/
  
     inFile.close();
     return 0;
