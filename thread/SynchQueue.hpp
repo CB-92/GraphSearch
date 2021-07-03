@@ -15,10 +15,12 @@ class SynchQueue{
 
     public:
         int size(){
+            unique_lock<mutex> lock(mq);
             return q.size();
         }
 
         bool empty(){
+            unique_lock<mutex> lock(mq);
             return q.empty();
         }
 

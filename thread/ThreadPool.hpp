@@ -9,6 +9,7 @@
 #include <condition_variable>
 #include <future>
 #include <functional>
+#include <atomic>
 #include <stdexcept>
 #include "../Node.hpp"
 
@@ -18,6 +19,9 @@ public:
     template<class F, class... Args>
     auto enqueue(F&& f, Args&&... args) 
         -> std::future<typename std::result_of<F(Args...)>::type>;
+    void terminate();
+    int get_running_threads();
+    bool finished();
     ~ThreadPool();
 
 private:
@@ -30,12 +34,13 @@ private:
     // synchronization
     std::mutex queue_mutex;
     std::condition_variable condition;
-    bool stop;
+    atomic_bool stop;
+    atomic_int running_threads;
 };
  
 // the constructor just launches some amount of workers
 inline ThreadPool::ThreadPool(size_t threads)
-    :   stop(false)
+    :   stop(false), running_threads(0)
 {
     for(size_t i = 0;i<threads;++i)
         workers.emplace_back(
@@ -51,14 +56,24 @@ inline ThreadPool::ThreadPool(size_t threads)
                             [this]{ return this->stop || !this->tasks.empty(); });
                         if(this->stop && this->tasks.empty())
                             return;
+                        running_threads++;
                         task = std::move(this->tasks.front());
                         this->tasks.pop();
                     }
-
+                    //TODO: check the order of running threads update 
                     task();
+                    running_threads--;
                 }
             }
         );
+}
+
+int ThreadPool::get_running_threads(){
+    return running_threads;
+}
+
+bool ThreadPool::finished(){
+    return ((running_threads==0) && tasks.empty());
 }
 
 // add new work item to the pool
@@ -86,16 +101,24 @@ auto ThreadPool::enqueue(F&& f, Args&&... args)
     return res;
 }
 
-// the destructor joins all threads
-inline ThreadPool::~ThreadPool()
-{
+void ThreadPool::terminate(){
     {
         std::unique_lock<std::mutex> lock(queue_mutex);
         stop = true;
     }
     condition.notify_all();
-    for(std::thread &worker: workers)
-        worker.join();
+    for(std::thread &worker: workers){
+        if(worker.joinable()){
+            worker.join();
+        }
+    }
+        
+}
+
+// the destructor joins all threads
+inline ThreadPool::~ThreadPool()
+{
+    terminate();
 }
 
 #endif

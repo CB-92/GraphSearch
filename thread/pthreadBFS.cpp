@@ -49,7 +49,7 @@ int Graph::BFS(int value, int source_id){
     vector<thread> vecOfThreads;
     
     while (!next_level.empty()){
-        Node n = this->get_node_at(next_level.get());
+        Node* n = this->get_node_at(next_level.get());
         //cout << "Node id: " << n.get_id() << ", Node value: " << n.get_value() << ";\n";
 
         vecOfThreads.push_back(thread(check_value, ref(visited), value, ref(res), n, ref(next_level)));
