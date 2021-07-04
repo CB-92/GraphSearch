@@ -16,40 +16,30 @@
  
 using namespace std;
 using namespace std::chrono;
- 
-/*int Graph::BFS(int x, int s, int th_num){
-    int len = this->number_of_vertices;
-    int visited[len] = {0};
-    int res = 0;
- 
-    // Create a queue for BFS
-    queue<Node*> q;
- 
-    visited[s] = 1;
+
+int Graph::BFS(int x, int s, int th_num){
+    int occurrencies=0;
+    queue<NodePtr> q;
+
     q.push(this->get_node_at(s));
 
     while (!q.empty()){
-        // Dequeue a vertex from queue and print it
-        Node* n = q.front();
-        //cout << n.node_id << " ";
-        //cout << "Node id: " << n.get_id() << ", Node value: " << n.get_value() << ";\t";
-        if (n->get_value() == x)
-            res++;
+        // Dequeue a node from the queue
+        NodePtr node = q.front();
         q.pop();
 
-        // Get all adjacent vertices of the dequeued
-        // vertex s. If a adjacent has not been visited,
-        // then mark it visited and enqueue it
-        for(int id : n->get_adj_list()){
-         
-            if (!visited[id]){
-                visited[id] = 1;
-                q.push(this->get_node_at(id));
-            }            
+        Node::visit_result res = node->check_and_visit(x);
+
+        occurrencies += res.first;
+
+        // Enqueue the nodes in s'adj list that are not already visited
+        for (auto n : res.second){
+            q.push(n);
         }
     }
-    return res;
-}*/
+
+    return occurrencies;
+}
 
 
 int main(int argc, char *argv[])
@@ -79,13 +69,10 @@ int main(int argc, char *argv[])
 
     high_resolution_clock::time_point start, stop;
     duration<double, std::milli> elapsed;
-    
-    /*std::chrono::system_clock::time_point start;
-    std::chrono::system_clock::time_point stop;*/
 
     // Create the graph
     
-    Graph g(nv);
+    Graph g(nv, false);
 
     int a, b;
     start = high_resolution_clock::now();
@@ -115,10 +102,8 @@ int main(int argc, char *argv[])
 
     elapsed = stop - start;
     cout << "Graph init in " << elapsed.count() << " milliseconds\n";
-
-    g.print();
  
-    /*start = high_resolution_clock::now();;
+    start = high_resolution_clock::now();;
     int occ = g.BFS(value, node_id);
     stop = high_resolution_clock::now();
     cout << "\n";
@@ -127,7 +112,7 @@ int main(int argc, char *argv[])
     
     elapsed = stop - start;
 
-    cout << "Sequential BFS computed in " << elapsed.count() << " milliseconds\n";*/
+    cout << "Sequential BFS computed in " << elapsed.count() << " milliseconds\n";
  
     inFile.close();
     return 0;

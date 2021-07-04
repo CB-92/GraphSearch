@@ -27,6 +27,14 @@ int main(int argc, char *argv[]){
 
     ofstream myfile (filename);
     if (myfile.is_open()){
+
+        // IDs and values
+        for (size_t i = 0; i < node_num; i++){
+            myfile << i << " " << rand() % static_cast<int>(max_value) <<"\n";
+        }
+
+        myfile << "#\n";
+
         int i, j, k,nodes = 0;
         srand (time (NULL));
         //int ranks = MIN_RANKS + (rand () % (MAX_RANKS - MIN_RANKS + 1));
@@ -48,13 +56,6 @@ int main(int argc, char *argv[]){
 
             nodes += new_nodes; /* Accumulate into old node set.  */
         }
-
-        myfile << "#\n";
-
-        for (size_t i = 0; i < node_num; i++){
-            myfile << i << " " << rand() % static_cast<int>(max_value) <<"\n";
-        }
-         
         
         cout << "Number of nodes: " << nodes << "\n";
         myfile.close();

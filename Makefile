@@ -9,17 +9,24 @@ OTHERFLAGS	=  -L/usr/X11R6/lib -lm
 
 TARGETS = \
 	sBFS \
-	sIBFS 
+	tBFS 
 
-.PHONY: clean cleanall
+.PHONY: clean cleanall all
 .SUFFIXES: .cpp 
 
+all: $(TARGETS)
 
-sBFS : sequential/sequentialBFS.cpp
+sBFS : sequential/sequentialBFS.cpp ./*hpp
 	$(CXX) $< $(CXXFLAGS) $(OPTFLAGS) $(OTHERFLAGS) $(LDFLAGS) -o sBFS
 
-sIBFS : sequential/sequentialBFS.cpp
+sIBFS : sequential/sequentialBFS.cpp ./*hpp
 	$(ICC) $< $(CXXFLAGS) $(OPTFLAGS) $(OTHERFLAGS) $(LDFLAGS) -o sIBFS
+
+tBFS : thread/threadBFS.cpp ./*hpp
+	$(CXX) $< $(CXXFLAGS) $(OPTFLAGS) $(OTHERFLAGS) $(LDFLAGS) -o tBFS
+
+tIBFS : thread/threadBFS.cpp ./*hpp
+	$(ICC) $< $(CXXFLAGS) $(OPTFLAGS) $(OTHERFLAGS) $(LDFLAGS) -o tIBFS
 
 clean		: 
 	rm -f $(TARGETS) 

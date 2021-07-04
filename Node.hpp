@@ -19,6 +19,7 @@ class Node{
         int node_id;
         int value;
         bool _visited;
+        bool is_concurrent;
         vector<NodePtr> adj;
         mutex mux;
         condition_variable cv;
@@ -26,8 +27,9 @@ class Node{
     public:
         using visit_result = pair<int, vector<NodePtr>>;
 
-        Node(int id, int val): node_id(id), value(val), _visited(false){
+        Node(int id, int val, bool concurrent): node_id(id), value(val), _visited(false), is_concurrent(concurrent){
             set<Node*> adj = {};
+            // Concurrent set to false in sequential execution
         }
 
         auto acquire(){
@@ -51,18 +53,25 @@ class Node{
         }
 
         bool visited(){
-            unique_lock<mutex> lock(mux);
+            unique_lock<mutex> lock;
+
+            if(is_concurrent)
+                lock =  unique_lock<mutex>(mux);
+
             return this->_visited;
         }
 
 
         visit_result check_and_visit(int value){
             visit_result res;
+            unique_lock<mutex> lock;
             int check = 0;
 
-            unique_lock<mutex> lock(mux);
+            if(is_concurrent)
+                lock =  unique_lock<mutex>(mux);
             
             if(!this->_visited){
+                this->_visited = true;
                 // check value
                 if(this->value == value){
                     check=1;
