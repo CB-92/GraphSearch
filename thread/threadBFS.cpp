@@ -9,35 +9,38 @@
 using namespace std;
 using namespace std::chrono;
 
-atomic_int occurencies;
 
-int check_node(NodePtr node, int value, ThreadPool* p){
-    Node::visit_result res = node->check_and_visit(value);
-    occurencies += res.first;
+ThreadPool::NodeAnalyzer node_analyzer = [](NodePtr node, int searched_value) -> ThreadPool::WorkerResult {
+    ThreadPool::WorkerResult res = pair<int, list<NodePtr>> (0, {});
 
-    // For each node in res.second I create a task and I add it to the task queue of the pool
-    //unique_lock<mutex> res_lock(*mux);
-    for(auto n : res.second){
-         p->enqueue(
-                check_node, n, value, p
-            );
-    }
+    Node::visit_result n_res = node->check_and_visit (searched_value);
+    res.first = n_res.first;
+    for (auto& n : n_res.second)
+        res.second.push_back (n);
 
-    return res.first;
-}
+    return res;
+};
+
 
 int Graph::BFS(int x, int s, int th_num){
-    ThreadPool pool(th_num);
+    ThreadPool thread_pool(th_num, node_analyzer, x);
+    ThreadPool::WorkerResult tmp_res = pair<int, list<NodePtr>> (0, {});
+    int occurrencies = 0;
 
     //Enqueue the first node
-    
-    pool.enqueue(
-        check_node, this->get_node_at(s), x, &pool
-    );
+    tmp_res.second.push_back ({this->get_node_at(s)});
 
-    pool.wait();
+    do {
+        // Preparing argument
+        // Enqueueing next level nodes
+        thread_pool.enqueue (tmp_res.second);
+        // Waiting
+        tmp_res = thread_pool.wait();
+        // Parsing result and preparing global_res for the next iteration
+        occurrencies += tmp_res.first;
+    } while (tmp_res.second.size() != 0);
 
-    return occurencies;
+    return occurrencies;
 }
 
 
@@ -72,7 +75,7 @@ int main(int argc, char *argv[])
 
     // Create the graph
     
-    Graph g(nv, true);
+    Graph g(nv, false);
 
     int a, b;
     start = high_resolution_clock::now();
@@ -113,7 +116,7 @@ int main(int argc, char *argv[])
     
     elapsed = stop - start;
 
-    cout << "Sequential BFS computed in " << elapsed.count() << " milliseconds\n";
+    cout << "Thread BFS computed in " << elapsed.count() << " milliseconds\n";
  
     inFile.close();
 

@@ -53,10 +53,10 @@ class Node{
         }
 
         bool visited(){
-            unique_lock<mutex> lock;
+            /*unique_lock<mutex> lock;
 
             if(is_concurrent)
-                lock =  unique_lock<mutex>(mux);
+                lock =  unique_lock<mutex>(mux);*/
 
             return this->_visited;
         }
@@ -64,11 +64,11 @@ class Node{
 
         visit_result check_and_visit(int value){
             visit_result res;
-            unique_lock<mutex> lock;
+            //unique_lock<mutex> lock;
             int check = 0;
 
-            if(is_concurrent)
-                lock =  unique_lock<mutex>(mux);
+            /*if(is_concurrent)
+                lock =  unique_lock<mutex>(mux);*/
             
             if(!this->_visited){
                 this->_visited = true;
