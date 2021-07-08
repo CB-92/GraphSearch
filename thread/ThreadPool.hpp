@@ -94,8 +94,10 @@ bool ThreadPool::finished(){
 ThreadPool::WorkerResult ThreadPool::wait(){
     WorkerResult res;
 
-    unique_lock<mutex> lock(exit_mutex);
-    finish_condition.wait(lock, [&]{return finished();});
+    {
+        unique_lock<mutex> lock(exit_mutex);
+        finish_condition.wait(lock, [&]{return finished();});
+    }
 
     // Collecting results
     for (auto &w : workers) {
