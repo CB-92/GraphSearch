@@ -53,7 +53,7 @@ int Graph::BFS(int value, int source_id, int th_num){
                            },
                            [&frontier](int& res, WorkerResultPtr tmp_res) {
                                res+=tmp_res->first;
-                               frontier.splice(tmp_res->second);
+                               frontier.splice(frontier.end(), tmp_res->second);
                            });       
     }
 
