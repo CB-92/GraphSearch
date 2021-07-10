@@ -71,32 +71,9 @@ int main(int argc, char *argv[])
     duration<double, std::milli> elapsed;
 
     // Create the graph
-    
-    Graph g(nv, false);
 
-    int a, b;
     start = high_resolution_clock::now();
-    bool hashtag_found = false;
-    string line;
-    
-    while(getline(inFile, line)){
-        //cout<<"Checking line: "<< line<<"\n";
-        if(line == "#"){
-            hashtag_found = true;
-        } else {
-            istringstream iss(line);
-            iss >> a >> b;
-            //cout << "A: " << a << ", B: " << b << "\n";
-            if(!hashtag_found){
-                // Adding node
-                g.addNode(a, b);
-            } else {
-                // Adding edge
-                g.addEdge(a, b);
-            }
-        }
-    }
-
+    Graph g(nv, false, inFile);
     stop = high_resolution_clock::now();
 
 

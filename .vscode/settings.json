@@ -63,5 +63,6 @@
         "thread": "cpp",
         "typeinfo": "cpp",
         "future": "cpp"
-    }
+    },
+    "python.pythonPath": "/usr/bin/python3"
 }
