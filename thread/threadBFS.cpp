@@ -31,6 +31,7 @@ int Graph::BFS(int x, int s, int th_num){
     tmp_res.second.push_back ({this->get_node_at(s)});
 
     do {
+        cout << tmp_res.second.size() << "\n";
         // Preparing argument
         // Enqueueing next level nodes
         thread_pool.enqueue (tmp_res.second);
@@ -75,37 +76,13 @@ int main(int argc, char *argv[])
 
     // Create the graph
     
-    Graph g(nv, false);
-
-    int a, b;
     start = high_resolution_clock::now();
-    bool hashtag_found = false;
-    string line;
-    
-    while(getline(inFile, line)){
-        if(line == "#"){
-            hashtag_found = true;
-        } else {
-            istringstream iss(line);
-            iss >> a >> b;
-            if(!hashtag_found){
-                // Adding node
-                g.addNode(a, b);
-            } else {
-                // Adding edge
-                g.addEdge(a, b);
-            }
-        }
-    }
-
+    Graph g(nv, false, inFile);
     stop = high_resolution_clock::now();
 
 
     elapsed = stop - start;
     cout << "Graph init in " << elapsed.count() << " milliseconds\n";
-
-
-
 
     start = high_resolution_clock::now();;
     int occ = g.BFS(value, node_id, th_num);

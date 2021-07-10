@@ -22,11 +22,11 @@ sBFS : sequential/sequentialBFS.cpp ./*hpp
 sIBFS : sequential/sequentialBFS.cpp ./*hpp
 	$(ICC) $< $(CXXFLAGS) $(OPTFLAGS) $(OTHERFLAGS) $(LDFLAGS) -o sIBFS
 
-tBFS : thread/threadBFS.cpp ./*hpp
-	$(CXX) $< $(CXXFLAGS) $(OPTFLAGS) $(OTHERFLAGS) $(LDFLAGS) -o tBFS
+tBFS : thread/* ./*hpp
+	$(CXX) thread/threadBFS.cpp $(CXXFLAGS) $(OPTFLAGS) $(OTHERFLAGS) $(LDFLAGS) -o tBFS
 
-tIBFS : thread/threadBFS.cpp ./*hpp
-	$(ICC) $< $(CXXFLAGS) $(OPTFLAGS) $(OTHERFLAGS) $(LDFLAGS) -o tIBFS
+tIBFS : thread/* ./*hpp
+	$(ICC) thread/threadBFS.cpp $(CXXFLAGS) $(OPTFLAGS) $(OTHERFLAGS) $(LDFLAGS) -o tIBFS
 
 clean		: 
 	rm -f $(TARGETS) 
