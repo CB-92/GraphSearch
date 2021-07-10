@@ -7,9 +7,16 @@ LDFLAGS 	=  -lpthread
 OPTFLAGS	=  -O3 -finline-functions
 OTHERFLAGS	=  -L/usr/X11R6/lib -lm
 
+FF_ROOT		= fastflow/ff
+
+INCLUDES	= -I $(FF_ROOT) 
+
+
 TARGETS = \
 	sBFS \
-	tBFS 
+	tBFS \
+	fBFS \
+	fTester
 
 .PHONY: clean cleanall all
 .SUFFIXES: .cpp 
@@ -27,6 +34,12 @@ tBFS : thread/* ./*hpp
 
 tIBFS : thread/* ./*hpp
 	$(ICC) thread/threadBFS.cpp $(CXXFLAGS) $(OPTFLAGS) $(OTHERFLAGS) $(LDFLAGS) -o tIBFS
+
+fBFS : fastflow/* ./*hpp
+	$(CXX) fastflow/fastflowBFS.cpp $(CXXFLAGS) $(OPTFLAGS) $(OTHERFLAGS) $(LDFLAGS) $(INCLUDES) -o fBFS
+
+fTester: fastflow/ff_tester.cpp ./*.hpp
+	$(CXX) fastflow/ff_tester.cpp $(CXXFLAGS) $(OPTFLAGS) $(OTHERFLAGS) $(LDFLAGS) $(INCLUDES) -o fTester
 
 clean		: 
 	rm -f $(TARGETS) 

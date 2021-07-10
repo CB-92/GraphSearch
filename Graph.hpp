@@ -15,6 +15,8 @@ class Graph
         bool is_concurrent;
     public:
 
+        Graph() = default;
+
         Graph(int num_nodes, bool concurrent, ifstream& inFile) : is_concurrent(concurrent){
             number_of_vertices = num_nodes;
             nodes.reserve(number_of_vertices);
