@@ -24,22 +24,44 @@ int source_id;
 Graph g;
 
 struct emitterCollector: ff_node_t<WorkerResult>{
+    int occ_counter=0;
+    int leftovers=0;
+    list<NodePtr> next_level;
 
     WorkerResult* svc(WorkerResult* wr){
         if( wr == nullptr){
             //firts element
-            cout << "Starting..\n";
             ff_send_out(g.get_node_at(source_id).get());
+            leftovers = 1; // Send out just the source node
             return GO_ON;
         }
-        cout << "Count: "<< wr->first << ", Lenght: " << wr->second.size() << "\n";
+        
+        occ_counter+=wr->first; //Update occurrencies
+        leftovers--; // One of the threads analysed a node and gave me its result -> uno in meno da aspettare
 
-        return GO_ON; //FIXME!
+        for(auto el : wr->second){
+            // Save the nodes in the queue for the next level of the visit
+            next_level.push_back(el);
+        }
+
+        if(leftovers==0){ // Level completed!
+
+            if(next_level.empty()){
+                // Visit completed
+                return EOS;
+            }
+
+            for(auto n : next_level){
+                ff_send_out(n.get());
+            }
+            leftovers = next_level.size();
+            next_level.clear();
+        }
+        return GO_ON;
     }
 
     void svc_end () {
-        // TODO write me!
-        cout << "Addio!\n";
+        // Nothing to do
     }
 };
 
@@ -47,12 +69,10 @@ struct emitterCollector: ff_node_t<WorkerResult>{
 struct nodeAnalyzer: ff_node_t<Node, WorkerResult>{
     WorkerResult* svc(Node* node){
         WorkerResult* res = new pair<int, list<NodePtr>> (0, {});
-        cout << "Sono qui dentro!\n";
         Node::visit_result n_res = node->check_and_visit(searched_val);
         res->first = n_res.first;
         for (auto& n : n_res.second)
             res->second.push_back (n);
-
         return res;
     }
 };
@@ -75,6 +95,7 @@ int Graph::BFS(int value, int source_id, int th_num){
         error("running farm");
         return -1;
     }
+    res = ec.occ_counter;
     ffTime(STOP_TIME);
     std::cout << "Time: " << ffTime(GET_TIME) << "\n";
 
