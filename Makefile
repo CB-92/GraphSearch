@@ -15,8 +15,7 @@ INCLUDES	= -I $(FF_ROOT)
 TARGETS = \
 	sBFS \
 	tBFS \
-	fBFS \
-	fTester
+	fBFS
 
 .PHONY: clean cleanall all
 .SUFFIXES: .cpp 
@@ -37,9 +36,6 @@ tIBFS : thread/* ./*hpp
 
 fBFS : fastflow/* ./*hpp
 	$(CXX) fastflow/fastflowBFS.cpp $(CXXFLAGS) $(OPTFLAGS) $(OTHERFLAGS) $(LDFLAGS) $(INCLUDES) -o fBFS
-
-fTester: fastflow/ff_tester.cpp ./*.hpp
-	$(CXX) fastflow/ff_tester.cpp $(CXXFLAGS) $(OPTFLAGS) $(OTHERFLAGS) $(LDFLAGS) $(INCLUDES) -o fTester
 
 clean		: 
 	rm -f $(TARGETS) 

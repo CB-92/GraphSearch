@@ -31,7 +31,6 @@ int Graph::BFS(int x, int s, int th_num){
     tmp_res.second.push_back ({this->get_node_at(s)});
 
     do {
-        cout << tmp_res.second.size() << "\n";
         // Preparing argument
         // Enqueueing next level nodes
         thread_pool.enqueue (tmp_res.second);
