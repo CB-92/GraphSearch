@@ -61,6 +61,10 @@ int main(int argc, char *argv[])
     ifstream inFile;
     inFile.open(filename);
 
+    // log file
+    fstream logFile;
+    logFile.open("seq_log.csv", std::fstream::in | std::fstream::out | std::fstream::app);
+
     // check that the file has been opened
     if (!inFile) {
     cerr << "Unable to open file " << filename << "\n";
@@ -90,7 +94,9 @@ int main(int argc, char *argv[])
     elapsed = stop - start;
 
     cout << "Sequential BFS computed in " << elapsed.count() << " milliseconds\n";
+    logFile << "" << nv << ", 1, " << elapsed.count() << "\n";
  
     inFile.close();
+    logFile.close();
     return 0;
 }

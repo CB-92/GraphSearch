@@ -64,6 +64,10 @@ int main(int argc, char *argv[])
     ifstream inFile;
     inFile.open(filename);
 
+    // log file
+    fstream logFile;
+    logFile.open("FF_log.csv", std::fstream::in | std::fstream::out | std::fstream::app);
+
     // check that the file has been opened
     if (!inFile) {
     cerr << "Unable to open file " << filename << "\n";
@@ -93,8 +97,10 @@ int main(int argc, char *argv[])
     elapsed = stop - start;
 
     cout << "Thread BFS computed in " << elapsed.count() << " milliseconds\n";
+    logFile << "" << nv << ", " << th_num << ", " << elapsed.count() << "\n";
  
     inFile.close();
+    logFile.close();
 
     return 0;
 }
