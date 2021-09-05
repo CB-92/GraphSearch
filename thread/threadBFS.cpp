@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 
     // log file
     fstream logFile;
-    logFile.open("FF_log.csv", std::fstream::in | std::fstream::out | std::fstream::app);
+    logFile.open("thread_log.csv", std::fstream::in | std::fstream::out | std::fstream::app);
 
     // check that the file has been opened
     if (!inFile) {
