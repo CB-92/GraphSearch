@@ -23,18 +23,20 @@ if version == 'sequential':
 
 elif version == 'thread':
     for n in test_files:
-        for th in range(1, 5, 1):
+        #for th in range(1, 5, 1):
+        for th in (2**p for p in range(1,9)):
             cmd = './tBFS data/' + test_files[n] + ' ' + n +' 2 1 ' + str(th)
             print(cmd)
-            for _ in range(11):
+            for _ in range(10):
                 os.system(cmd)
 
 elif version == 'fastflow':
     for n in test_files:
-        for th in range(1, 5, 1):
+        for th in (2**p for p in range(1,9)):
+        #for th in range(1, 5, 1):
             cmd = './fBFS data/' + test_files[n] + ' ' + n +' 2 1 ' + str(th)
             print(cmd)
-            for _ in range(11):
+            for _ in range(10):
                 os.system(cmd)
 
 else:
