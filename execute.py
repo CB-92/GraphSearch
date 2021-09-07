@@ -35,7 +35,7 @@ elif version == 'thread':
 
 elif version == 'fastflow':
     for n in test_files:
-        cmd = './tBFS data/' + test_files[n] + ' ' + n +' 2 1 1'
+        cmd = './fBFS data/' + test_files[n] + ' ' + n +' 2 1 1'
         for _ in range(10):
             os.system(cmd)
         for th in (2**p for p in range(1,9)):
